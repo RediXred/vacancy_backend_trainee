@@ -436,9 +436,9 @@ class VacancyBase(BaseModel):
 * Исправленный код:
 ```python
 __table_args__ = (
-        UniqueConstraint("external_id", name="uq_vacancies_external_id"),
-        CheckConstraint("published_at <= now()", name="check_published_at_not_future"),
-    )
+    UniqueConstraint("external_id", name="uq_vacancies_external_id"),
+    CheckConstraint("published_at <= now()", name="check_published_at_not_future"),
+)
 ...
 class VacancyBase(BaseModel):
     title: str
@@ -452,8 +452,10 @@ class VacancyBase(BaseModel):
 
     @field_validator("published_at")
     @classmethod
-    def date_not_in_future(cls, v: datetime):
-        if v.replace(tzinfo=None) > datetime.now().replace(tzinfo=None):
+    def date_not_in_future(cls, v: datetime) -> datetime:
+        if v.tzinfo is None:
+            v = v.replace(tzinfo=timezone.utc)
+        if v > datetime.now(timezone.utc):
             raise ValueError("Published date cannot be in the future.")
         return v
 ```
